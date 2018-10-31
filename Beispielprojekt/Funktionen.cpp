@@ -1,4 +1,5 @@
-#include "stdafx.h"
+#include "pch.h"
+//#include "stdafx.h"
 #include "Funktionen.h"
 #include "Gosu/Gosu.hpp"
 #include <cmath>

@@ -1,4 +1,5 @@
-#include "stdafx.h"
+#include "pch.h"
+//#include "stdafx.h"
 #include "Planet.h"
 
 Planet::Planet(Vektor2d pos, double mass, std::string img)

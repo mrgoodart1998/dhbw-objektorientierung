@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include "pch.h"
 
 #include <Gosu/Gosu.hpp>
 #include <Gosu/AutoLink.hpp>

@@ -9,110 +9,186 @@
 
 #include "Planet.h"
 #include "Vektor2d.h"
+#include "Funktionen.h"
+using namespace std;
 
 // Simulationsgeschwindigkeit
 const double DT = 100.0;
 
+vector<double> hindernisse_x;
+vector<double> hindernisse_y;
+int anz_hindernisse = 10;
+int i = 0;
+
 class GameWindow : public Gosu::Window
 {
-public:
 	Gosu::Image bild;
+	Gosu::Image hindernis;
+	Gosu::Image boom;
+	double pos_x1 = graphics().width() / 2.0;
+	double pos_y1 = graphics().width() / 2.0;
+	double pos_x2 = graphics().width() / 2.0;
+	double pos_y2 = 800.0;
+	double pos_y3 = 10000000.0;
+	double pos_x3 = 10000000.0;
+	double vel_x, vel_y, angle1;
+public:
+
 	GameWindow()
-		: Window(800, 600)
-		, bild("rakete.png")
+		: Window(1000, 1000)
+		, bild("Autorot.png")
+		, hindernis("Autoblau.png")
+		, boom("boom.png")
 		// Rakete startet in der Mitte des Bildschirmes
-		, pos(graphics().width() / 2.0, graphics().height() / 2.0) 
+		, pos(graphics().width() / 2.0, graphics().height() / 2.0)
+
 	{
+		vel_x = vel_y = angle1 = 0;
+		set_caption("Autorennspieleee");
 
 		// Erzeuge Planeten
-		//planets.push_back(Planet({ 200.0, 200.0 }, 0.1, "planet1.png"));
-		//planets.push_back(Planet({ 600.0, 200.0 }, 0.1, "planet2.png"));
-		//planets.push_back(Planet({ 400.0, 500.0 }, 0.1, "planet3.png"));
+		//planets.push_back(Planet({ 200.0, 200.0 }, 0.1, "Autoweiss.png"));
+		//planets.push_back(Planet({ 600.0, 200.0 }, 0.1, "Autogruen.png"));
+		//planets.push_back(Planet({ 400.0, 500.0 }, 0.1, "Autoblau.png"));
 	}
+
+
+	double x = 0;
+	double y = 0;
 
 	// wird bis zu 60x pro Sekunde aufgerufen.
 	// Wenn die Grafikkarte oder der Prozessor nicht mehr hinterherkommen,
 	// dann werden `draw` Aufrufe ausgelassen und die Framerate sinkt
-	
-	
 	void draw() override
 	{
-		set_caption("Gosu Tutorial Game mit Git");
-		graphics().draw_line(
-			input().mouse_x(), input().mouse_y(), Gosu::Color::RED, //am besten in update()
-			200, 100, Gosu::Color::GREEN,
-			0.0
-		);
-		/*
-		graphics().draw_triangle(
-			200, 200, Gosu::Color::RED,
-			400, 400, Gosu::Color::BLUE,
-			400, 200, Gosu::Color::YELLOW,
-			900
-			);
-		graphics().draw_triangle(
-			100, 100, Gosu::Color::RED,
-			500, 500, Gosu::Color::RED,
-			500, 100, Gosu::Color::RED,
-			700
-		);
-		*/
-		
-		bild.draw_rot(x, y, 10.0,
-			rot, // Rotationswinkel in Grad
-			0.5, 0.5, // Position der "Mitte"
-			1,1
+
+		do
+		{
+			hindernisse_x.push_back(Gosu::random(1, graphics().width())),
+				hindernisse_y.push_back(Gosu::random(800, 2500));
+			i++;
+		} while (i < 10);
+
+		//Gosu::random();
+
+		bild.draw_rot(pos_x1, pos_y1, -10,
+			0, // Rotationswinkel in Grad
+			0.5, 0.5, 0.5, 0.5 // Position der "Mitte"
 		);
 
-		/*
+
+		for (int j = 0; j < 10; j++)
+		{
+			hindernis.draw_rot(hindernisse_x.at(j), hindernisse_y.at(j), -10000,
+				0, // Rotationswinkel in Grad
+				0.5, 0.5, 0.5, 0.5 // Position der "Mitte";
+			);
+		}
+
+
+		//bild.draw_rot(pos.get_x(), pos.get_y(), 10.0,
+			//rot, // Rotationswinkel in Grad
+			//0.5, 0.5 // Position der "Mitte"
+		hindernis.draw_rot(pos_x2, pos_y2, -10000,
+			0, // Rotationswinkel in Grad
+			0.5, 0.5, 0.5, 0.5 // Position der "Mitte";
+		);
+
+		boom.draw_rot(pos_x3, pos_y3, 100, 0, 0.5, 0.5, 0.5, 0.5);
+
+		//graphics().draw_triangle(0, 0, Gosu::Color::BLACK, 800, 0, Gosu::Color::BLACK, 400, 600, Gosu::Color::BLACK, -100);
+
+
 		auto g2 = (gravity * 1000000000000.0).log();
 
 		Vektor2d rose(50.0, 50.0);
 		auto g = rose - g2;
 		auto s = rose + speed * 1000.0;
 
-		graphics().draw_line(pos.get_x(), pos.get_y(), Gosu::Color::GREEN, input().mouse_x(), input().mouse_y(), Gosu::Color::GREEN, -10.0);
-		graphics().draw_line(rose.get_x(), rose.get_y(), Gosu::Color::RED, g.get_x(), g.get_y(), Gosu::Color::RED, 10.0);
-		graphics().draw_line(rose.get_x(), rose.get_y(), Gosu::Color::BLUE, s.get_x(), s.get_y(), Gosu::Color::BLUE, 10.0);
+		graphics().draw_rect(20, 20, 20, 10, Gosu::Color::WHITE, -100);
+		//graphics().draw_line(pos.get_x(), pos.get_y(), Gosu::Color::GREEN, input().mouse_x(), input().mouse_y(), Gosu::Color::GREEN, -10.0);
+		//graphics().draw_line(rose.get_x(), rose.get_y(), Gosu::Color::RED, g.get_x(), g.get_y(), Gosu::Color::RED, 10.0);
+		//graphics().draw_line(rose.get_x(), rose.get_y(), Gosu::Color::BLUE, s.get_x(), s.get_y(), Gosu::Color::BLUE, 10.0);
 
 		for (auto planet : planets) {
 			planet.draw();
 		}
-		*/
+
 	}
 
-	
 	double rot = 0.0;
-	double x = 0;
-	double y = 0;
 	Vektor2d pos, speed, gravity;
-	//double accel = 0.0;
-	//std::vector<Planet> planets;
-
+	Funktionen abstand;
+	double accel = 0.0;
+	std::vector<Planet> planets;
 
 
 	// Wird 60x pro Sekunde aufgerufen
 	void update() override
 	{
-		x = input().mouse_x();
-		y = input().mouse_y();
-		
-		if (input().down(Gosu::KB_RIGHT)) {
-			rot += 10;
-		}
-		else if (input().down(Gosu::KB_LEFT))
+
+
+
+
+		if ((input().down(Gosu::KB_LEFT)) && ((abstand.get_abstand(bild.width(), bild.height(), hindernis.width(), hindernis.height(), pos_x1, pos_y1, pos_x2, pos_y2)) >= 1.0))
 		{
+			pos_x1 -= 3;
 			rot -= 10;
 		}
-		if (input().down(Gosu::KB_ESCAPE))
+		else if ((input().down(Gosu::KB_LEFT)) && ((abstand.get_abstand(bild.width(), bild.height(), hindernis.width(), hindernis.height(), pos_x1, pos_y1, pos_x2, pos_y2)) <= 2.0) && (pos_x1 <= pos_x2))
 		{
-			Gosu::Window::close();
+			pos_x1 -= 3;
 		}
-		
-		/*
-		// Geschwindigkeit führt zu Positionsänderung
-		pos += speed * DT;
 
+		if ((input().down(Gosu::KB_RIGHT)) && ((abstand.get_abstand(bild.width(), bild.height(), hindernis.width(), hindernis.height(), pos_x1, pos_y1, pos_x2, pos_y2)) >= 1.0))
+		{
+			pos_x1 += 3;
+			rot += 10;
+		}
+		else if ((input().down(Gosu::KB_RIGHT)) && ((abstand.get_abstand(bild.width(), bild.height(), hindernis.width(), hindernis.height(), pos_x1, pos_y1, pos_x2, pos_y2)) <= 2.0) && (pos_x1 >= pos_x2))
+		{
+			pos_x1 += 3;
+		}
+
+		//if (input().down(Gosu::KB_DOWN) && (pos_y2!=(pos_y1+20)))
+			//pos_y1 += 3;
+
+		cout << abstand.get_abstand(bild.width(), bild.height(), hindernis.width(), hindernis.height(), pos_x1, pos_y1, pos_x2, pos_y2) << endl;
+
+		if ((input().down(Gosu::KB_DOWN)) && ((abstand.get_abstand(bild.width(), bild.height(), hindernis.width(), hindernis.height(), pos_x1, pos_y1, pos_x2, pos_y2)) >= 1.0))
+		{
+			pos_y2 -= 3;
+			for (int j = 0; j < hindernisse_x.size(); j++)
+			{
+				hindernisse_y.at(j) -= 3;
+			}
+		}
+		//else if ((input().down(Gosu::KB_DOWN)) && ((abstand.get_abstand(bild.width(), bild.height(), hindernis.width(), hindernis.height(), pos_x1, pos_y1, pos_x2, pos_y2)) < 1.0))
+			//pos_y1 += 3;
+
+
+		if ((input().down(Gosu::KB_UP)) && ((abstand.get_abstand(bild.width(), bild.height(), hindernis.width(), hindernis.height(), pos_x1, pos_y1, pos_x2, pos_y2)) < 1.0))
+			pos_y1 -= 5;
+
+		if (input().down(Gosu::KB_ESCAPE))
+			close();
+
+
+
+		// Crash-Erkennung
+		if ((abstand.get_abstand(bild.width(), bild.height(), hindernis.width(), hindernis.height(), pos_x1, pos_y1, pos_x2, pos_y2)) <= 1.0 && (pos_x3 != graphics().width() / 2.0))
+		{
+			pos_y3 = pos_y1 + 20;
+			pos_x3 = graphics().width() / 2.0;
+		};
+
+		//cout << pos_x1 << "    " << pos_x2 << "       " << pos_y1 << "    " << pos_y2 << "   " << bild.width() << "   " << bild.height() << endl;
+
+
+		// Geschwindigkeit führt zu Positionsänderung
+		//pos += speed * DT;
+
+		/*
 		// Beschleunigung während "W" gedrückt
 		if (input().down(Gosu::KB_W)) {
 			accel += 0.00001;
@@ -156,9 +232,9 @@ public:
 		double angle = pos.angle({ input().mouse_x(), input().mouse_y() });
 		rot -= Gosu::angle_diff(angle, rot) / 36.0;
 		*/
+
 	}
 };
-
 
 // C++ Hauptprogramm
 int main()

@@ -21,26 +21,50 @@ public:
 		: Window(800, 600)
 		, bild("rakete.png")
 		// Rakete startet in der Mitte des Bildschirmes
-		, pos(graphics().width() / 2.0, graphics().height() / 2.0)
+		, pos(graphics().width() / 2.0, graphics().height() / 2.0) 
 	{
-		set_caption("Gosu Tutorial Game mit Git");
 
 		// Erzeuge Planeten
-		planets.push_back(Planet({ 200.0, 200.0 }, 0.1, "planet1.png"));
-		planets.push_back(Planet({ 600.0, 200.0 }, 0.1, "planet2.png"));
-		planets.push_back(Planet({ 400.0, 500.0 }, 0.1, "planet3.png"));
+		//planets.push_back(Planet({ 200.0, 200.0 }, 0.1, "planet1.png"));
+		//planets.push_back(Planet({ 600.0, 200.0 }, 0.1, "planet2.png"));
+		//planets.push_back(Planet({ 400.0, 500.0 }, 0.1, "planet3.png"));
 	}
 
 	// wird bis zu 60x pro Sekunde aufgerufen.
 	// Wenn die Grafikkarte oder der Prozessor nicht mehr hinterherkommen,
 	// dann werden `draw` Aufrufe ausgelassen und die Framerate sinkt
+	
+	
 	void draw() override
 	{
-		bild.draw_rot(pos.get_x(), pos.get_y(), 10.0,
+		set_caption("Gosu Tutorial Game mit Git");
+		graphics().draw_line(
+			input().mouse_x(), input().mouse_y(), Gosu::Color::RED, //am besten in update()
+			200, 100, Gosu::Color::GREEN,
+			0.0
+		);
+		/*
+		graphics().draw_triangle(
+			200, 200, Gosu::Color::RED,
+			400, 400, Gosu::Color::BLUE,
+			400, 200, Gosu::Color::YELLOW,
+			900
+			);
+		graphics().draw_triangle(
+			100, 100, Gosu::Color::RED,
+			500, 500, Gosu::Color::RED,
+			500, 100, Gosu::Color::RED,
+			700
+		);
+		*/
+		
+		bild.draw_rot(x, y, 10.0,
 			rot, // Rotationswinkel in Grad
-			0.5, 0.5 // Position der "Mitte"
+			0.5, 0.5, // Position der "Mitte"
+			1,1
 		);
 
+		/*
 		auto g2 = (gravity * 1000000000000.0).log();
 
 		Vektor2d rose(50.0, 50.0);
@@ -54,16 +78,38 @@ public:
 		for (auto planet : planets) {
 			planet.draw();
 		}
+		*/
 	}
 
+	
 	double rot = 0.0;
+	double x = 0;
+	double y = 0;
 	Vektor2d pos, speed, gravity;
-	double accel = 0.0;
-	std::vector<Planet> planets;
+	//double accel = 0.0;
+	//std::vector<Planet> planets;
+
+
 
 	// Wird 60x pro Sekunde aufgerufen
 	void update() override
 	{
+		x = input().mouse_x();
+		y = input().mouse_y();
+		
+		if (input().down(Gosu::KB_RIGHT)) {
+			rot += 10;
+		}
+		else if (input().down(Gosu::KB_LEFT))
+		{
+			rot -= 10;
+		}
+		if (input().down(Gosu::KB_ESCAPE))
+		{
+			Gosu::Window::close();
+		}
+		
+		/*
 		// Geschwindigkeit führt zu Positionsänderung
 		pos += speed * DT;
 
@@ -109,8 +155,10 @@ public:
 		// Raumschiff in Richtung Mauszeiger drehen
 		double angle = pos.angle({ input().mouse_x(), input().mouse_y() });
 		rot -= Gosu::angle_diff(angle, rot) / 36.0;
+		*/
 	}
 };
+
 
 // C++ Hauptprogramm
 int main()

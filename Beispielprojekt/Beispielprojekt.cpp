@@ -31,7 +31,7 @@ class GameWindow : public Gosu::Window
 	double pos_x1 = graphics().width() / 3.0;
 	double pos_y1 = graphics().width() / 2.0;
 	double pos_x2 = graphics().width() / 2.0;
-	double pos_y2 = graphics().width() / 2.0;
+	double pos_y2 = 0; // graphics().width() / 2.0;
 	double pos_y3 = 10000000.0;
 	double pos_x3 = 10000000.0;
 	double delta_pos = 0;
@@ -116,35 +116,30 @@ public:
 	// dann werden `draw` Aufrufe ausgelassen und die Framerate sinkt
 	void draw() override
 	{
-		// Strecke
-		//int rasenOffsetY = pos_y2 / c_RASEN_BREITE;
-		//for (int n = 0; n < c_WINDOW_HIGHT; n++) {
-		for (int n = 0; n < c_ANZAHL_STRECKENSTUECKE; n++) {
-			//rasen.draw_rot(oben_links_x, oben_links_y + i * delta_y, 100, 0, 0.5, 0.5, 0.5);
-			//rasen.draw_rot(pos_x2- streckenstück_x[rasenOffsetY + n], pos_y2- streckenstück_y[rasenOffsetY + n], 0, 0, 0.5, 0.5, 0.5);
-			//rasen.draw_rot(streckenstück_x[rasenOffsetY + n], streckenstück_y[rasenOffsetY + n], 0, 0, 0.5, 0.5, 0.5);
-
-			// Nur Streckenstücke zeichnen, die im Window liegen
-			if( ((-1*streckenstück_y[n]) < pos_y2) && ((-1*streckenstück_y[n]) > (pos_y2 - c_WINDOW_HIGHT) )){
-				rasen.draw_rot(pos_x2 - streckenstück_x[n], pos_y2 + streckenstück_y[n], 0, 0, 0.5, 0.5, 0.5);
-			}			
-		}
-		for (int n = 0; n < c_ANZAHL_STRECKENSTUECKE; n++) {
-			//rasen.draw_rot(oben_links_x, oben_links_y + i * delta_y, 100, 0, 0.5, 0.5, 0.5);
-			//rasen.draw_rot(pos_x2- streckenstück_x[streckenstück_idx + n], pos_y2- streckenstück_y[streckenstück_idx + n], 100, 0, 0.5, 0.5, 0.5);			
-			//if ((streckenstück_y[n] > pos_y1) && (streckenstück_y[n] < (pos_y1 + c_WINDOW_HIGHT))) {
-
-			// Nur Streckenstücke zeichnen, die im Window liegen
-			if (((-1 * streckenstück_y[n]) < pos_y2) && ((-1 * streckenstück_y[n]) > (pos_y2 - c_WINDOW_HIGHT))) {
-				rasen.draw_rot(pos_x2 + 1000 - streckenstück_x[n], pos_y2 + streckenstück_y[n], 0, 180, 0.5, 0.5, 0.5);
+		// Strecke		
+		int rasenOffsetY = (-1*(pos_y2) ) / c_RASEN_BREITE;		
+		// linker Rasen
+		for (int n = rasenOffsetY; n < rasenOffsetY+ c_WINDOW_HIGHT; n++) { // Nur Streckenstücke, ide im Window liegen			
+			// prevent access violation
+			if (n >= (c_ANZAHL_STRECKENSTUECKE-1) || n < 0 ) {
+				break;
 			}
+			rasen.draw_rot(pos_x2 - streckenstück_x[n], pos_y2 + streckenstück_y[n], 0, 0, 0.5, 0.5, 0.5);
 		}
-
-		for(int n = 0; n < c_ANZAHL_STRECKENSTUECKE-1; n++){
-			// Nur Streckenstücke zeichnen, die im Window liegen
-			//if (((-1 * streckenstück_y[n]) < pos_y2) && ((-1 * streckenstück_y[n]) > (pos_y2 - c_WINDOW_HIGHT))) {
-
-			//if ( (-1 * streckenstück_y[n]) == (pos_y2 - c_WINDOW_HIGHT/2)) {
+		// Rechter Rasen
+		for (int n = rasenOffsetY; n < rasenOffsetY + c_WINDOW_HIGHT; n++) { // Nur Streckenstücke, ide im Window liegen
+			// prevent access violation
+			if (n >= (c_ANZAHL_STRECKENSTUECKE - 1) || n < 0) {
+				break;
+			}
+			rasen.draw_rot(pos_x2 + 1000 - streckenstück_x[n], pos_y2 + streckenstück_y[n], 0, 180, 0.5, 0.5, 0.5);
+		}
+		// Nur Streckenstücke, ide im Window liegen
+		for (int n = rasenOffsetY; n < rasenOffsetY + c_WINDOW_HIGHT; n++) {
+			// prevent access violation
+			if (n >= (c_ANZAHL_STRECKENSTUECKE - 1) || n < 0) {
+				break;
+			}
 			double streckenstück_y_cur  = -1 * streckenstück_y[n];
 			double streckenstück_y_next = -1 * streckenstück_y[n+1];
 			double offsetY = 420;

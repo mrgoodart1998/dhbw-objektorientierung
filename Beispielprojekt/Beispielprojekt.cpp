@@ -25,14 +25,34 @@ class GameWindow : public Gosu::Window
 	Gosu::Image bild;
 	Gosu::Image hindernis;
 	Gosu::Image boom;
-	double pos_x1 = graphics().width() / 2.0;
+	Gosu::Image rasen;
+	//Gosu::Image start;
+	//Gosu::Image ziel;
+	double pos_x1 = graphics().width() / 3.0;
 	double pos_y1 = graphics().width() / 2.0;
 	double pos_x2 = graphics().width() / 2.0;
-	double pos_y2 = 800.0;
+	double pos_y2 = graphics().width() / 2.0;
 	double pos_y3 = 10000000.0;
 	double pos_x3 = 10000000.0;
 	double delta_pos = 0;
 	double vel_x, vel_y, angle1;
+	double posX_Streckenrand_links = 0;
+	double posX_Streckenrand_rechts = 800;
+
+// Strecke
+vector<double> streckenstück_x;
+vector<double> streckenstück_y;
+//int streckenstück_idx = 0;
+const int c_ANZAHL_STRECKENSTUECKE = 10000;
+const int c_WINDOW_WIDTH = 1000;
+const int c_WINDOW_HIGHT = 1000;
+
+const int c_RASEN_BREITE = 24;
+
+//vector<double> oben_links_x;
+double delta_y = 24.5;
+double delta_bahn_y = 300;
+
 public:
 
 	GameWindow()
@@ -40,28 +60,127 @@ public:
 		, bild("Autorot.png")
 		, hindernis("Autoblau.png")
 		, boom("boom.png")
+		, rasen("stueck_rasen.png")
+		//, start("start.png")
+		//, bahn("stueck_bahn.png")
 		// Rakete startet in der Mitte des Bildschirmes
-		//, pos(graphics().width() / 2.0, graphics().height() / 2.0)
-
+		//, pos(graphics().width() / 2.0, graphics().height() / 2.0)		
 	{
 		vel_x = vel_y = angle1 = 0;
 		set_caption("Autorennspieleee");
 
-		// Erzeuge Planeten
-		//planets.push_back(Planet({ 200.0, 200.0 }, 0.1, "Autoweiss.png"));
-		//planets.push_back(Planet({ 600.0, 200.0 }, 0.1, "Autogruen.png"));
-		//planets.push_back(Planet({ 400.0, 500.0 }, 0.1, "Autoblau.png"));
+		double x_strecke = 500;
+		double y_strecke = 0;
+
+	
+		for (int i = 0; i < c_ANZAHL_STRECKENSTUECKE; i++) {
+			
+			if ( (i > 0) && (i < 21) ) {
+				x_strecke += 0;
+			}
+			else if (i > 20 && (i < 56)) {
+				x_strecke += 2;				
+			}
+			else if ((i > 55) && (i < 91)) {
+				x_strecke -= 7;				
+			}
+			else if ((i > 90) && (i < 121)){
+				x_strecke += 3;				
+			}
+			else if ((i > 120) && (i < 151)){
+				x_strecke += 4;				
+			}
+			else if ((i > 150) && (i < 176)){
+				x_strecke -= 5;				
+			}
+			else if ((i > 175) && (i < 201)){
+				x_strecke += 8;				
+			}
+			else if ((i > 200) ){
+				x_strecke -= 1;				
+			}
+
+			streckenstück_x.push_back(x_strecke);
+			streckenstück_y.push_back(y_strecke);			
+			y_strecke += c_RASEN_BREITE;
+		}
+		//streckenstück_idx = 0;
 	}
 
 
-	double x = 0;
-	double y = 0;
+	//double x = 0;
+	//double y = 0;
 
 	// wird bis zu 60x pro Sekunde aufgerufen.
 	// Wenn die Grafikkarte oder der Prozessor nicht mehr hinterherkommen,
 	// dann werden `draw` Aufrufe ausgelassen und die Framerate sinkt
 	void draw() override
 	{
+		// Strecke
+		//int rasenOffsetY = pos_y2 / c_RASEN_BREITE;
+		//for (int n = 0; n < c_WINDOW_HIGHT; n++) {
+		for (int n = 0; n < c_ANZAHL_STRECKENSTUECKE; n++) {
+			//rasen.draw_rot(oben_links_x, oben_links_y + i * delta_y, 100, 0, 0.5, 0.5, 0.5);
+			//rasen.draw_rot(pos_x2- streckenstück_x[rasenOffsetY + n], pos_y2- streckenstück_y[rasenOffsetY + n], 0, 0, 0.5, 0.5, 0.5);
+			//rasen.draw_rot(streckenstück_x[rasenOffsetY + n], streckenstück_y[rasenOffsetY + n], 0, 0, 0.5, 0.5, 0.5);
+
+			// Nur Streckenstücke zeichnen, die im Window liegen
+			if( ((-1*streckenstück_y[n]) < pos_y2) && ((-1*streckenstück_y[n]) > (pos_y2 - c_WINDOW_HIGHT) )){
+				rasen.draw_rot(pos_x2 - streckenstück_x[n], pos_y2 + streckenstück_y[n], 0, 0, 0.5, 0.5, 0.5);
+			}			
+		}
+		for (int n = 0; n < c_ANZAHL_STRECKENSTUECKE; n++) {
+			//rasen.draw_rot(oben_links_x, oben_links_y + i * delta_y, 100, 0, 0.5, 0.5, 0.5);
+			//rasen.draw_rot(pos_x2- streckenstück_x[streckenstück_idx + n], pos_y2- streckenstück_y[streckenstück_idx + n], 100, 0, 0.5, 0.5, 0.5);			
+			//if ((streckenstück_y[n] > pos_y1) && (streckenstück_y[n] < (pos_y1 + c_WINDOW_HIGHT))) {
+
+			// Nur Streckenstücke zeichnen, die im Window liegen
+			if (((-1 * streckenstück_y[n]) < pos_y2) && ((-1 * streckenstück_y[n]) > (pos_y2 - c_WINDOW_HIGHT))) {
+				rasen.draw_rot(pos_x2 + 1000 - streckenstück_x[n], pos_y2 + streckenstück_y[n], 0, 180, 0.5, 0.5, 0.5);
+			}
+		}
+
+		for(int n = 0; n < c_ANZAHL_STRECKENSTUECKE-1; n++){
+			// Nur Streckenstücke zeichnen, die im Window liegen
+			//if (((-1 * streckenstück_y[n]) < pos_y2) && ((-1 * streckenstück_y[n]) > (pos_y2 - c_WINDOW_HIGHT))) {
+
+			//if ( (-1 * streckenstück_y[n]) == (pos_y2 - c_WINDOW_HIGHT/2)) {
+			double streckenstück_y_cur  = -1 * streckenstück_y[n];
+			double streckenstück_y_next = -1 * streckenstück_y[n+1];
+			double offsetY = 420;
+			if ( (pos_y2 <= (streckenstück_y_cur + offsetY)) && (pos_y2 >= (streckenstück_y_next + offsetY))) {
+				
+				posX_Streckenrand_links = (-1*streckenstück_x[n]) + 770;
+
+				graphics().draw_line(posX_Streckenrand_links, 0, Gosu::Color::RED, posX_Streckenrand_links, c_WINDOW_HIGHT, Gosu::Color::RED,0);
+
+				posX_Streckenrand_rechts = (-1*streckenstück_x[n]) + 1230;
+
+				graphics().draw_line(posX_Streckenrand_rechts, 0, Gosu::Color::RED, posX_Streckenrand_rechts, c_WINDOW_HIGHT, Gosu::Color::RED, 0);
+
+			}
+		}
+		 
+		//Positionen der Hindernisse random bestimmen
+		do
+		{
+			hindernisse_x.push_back(Gosu::random(1, graphics().width()));
+			hindernisse_x.push_back(Gosu::random(1, graphics().width()));
+			hindernisse_x.push_back(Gosu::random(1, graphics().width()));
+			hindernisse_x.push_back(Gosu::random(1, graphics().width()));
+			hindernisse_y.push_back(Gosu::random(800, 5000));
+			hindernisse_y.push_back(Gosu::random(5000, 10000));
+			hindernisse_y.push_back(Gosu::random(10000, 15000));
+			hindernisse_y.push_back(Gosu::random(15000, 20000));
+			i++;
+		} while (i <= 20);
+
+
+
+
+
+
+		
 		//Positionen der Hindernisse random bestimmen
 		do
 		{
@@ -79,10 +198,11 @@ public:
 		//Gosu::random();
 
 		//Spieler 1 (rotes Auto)
-		bild.draw_rot(pos_x1, pos_y1, -10,
+		bild.draw_rot(pos_x1, pos_y1, 10,
 			0, // Rotationswinkel in Grad
 			0.5, 0.5, 0.5, 0.5 // Position der "Mitte"
 		);
+		
 
 		//Zeichnen von Hindernissen
 		for (int j = 0; j < 80; j++)
@@ -94,13 +214,13 @@ public:
 		}
 
 		//Aktuelles Hindernis mit Boom
-		hindernis.draw_rot(pos_x2, pos_y2, -10000,
+		hindernis.draw_rot(pos_x2, pos_y2, 10,
 			0, // Rotationswinkel in Grad
 			0.5, 0.5, 0.5, 0.5 // Position der "Mitte";
 		);
 
 		//Erscheinen bei Crash
-		boom.draw_rot(pos_x3, pos_y3, 100, 0, 0.5, 0.5, 0.5, 0.5);
+		boom.draw_rot(pos_x3, pos_y3, 10, 0, 0.5, 0.5, 0.5, 0.5);
 
 		/*
 		auto g2 = (gravity * 1000000000000.0).log();
@@ -155,9 +275,9 @@ public:
 		//Funktionen beim Beschleunigen
 		if ((input().down(Gosu::KB_DOWN)) && ((abstand.get_abstand(bild.width(), bild.height(), hindernis.width(), hindernis.height(), pos_x1, pos_y1, pos_x2, pos_y2)) >= 1.0))
 		{
-			if (delta_pos<20)	//Maximalgeschwindigkeitsänderung: 20
+			if (delta_pos<30)	//Maximalgeschwindigkeitsänderung: 20
 			{
-				delta_pos += 0.05;	//Pro Durchlauf Erhöhung der Geschwindigkeit um 0.05
+				delta_pos += 0.1;	//Pro Durchlauf Erhöhung der Geschwindigkeit um 0.1
 			}
 			pos_y2 -= delta_pos;
 			pos_y3 -= delta_pos;
@@ -180,10 +300,16 @@ public:
 				hindernisse_y.at(j) -= delta_pos;
 			}
 		}
-		
+		//else if ((input().down(Gosu::KB_DOWN)) && (pos_x1 < posX_Streckenrand_links || pos_x1 > posX_Streckenrand_rechts )) {
+		if ((pos_x1 < posX_Streckenrand_links || pos_x1 > posX_Streckenrand_rechts)) {
+			if (delta_pos > 4) {
+				delta_pos -= 0.5; //Bremsen auf Gras bis Minimalspeed 1
+			}
+					
+		}
 		//Freistellen des Autos zurück bei Crash
 		if ((input().down(Gosu::KB_UP)) && ((abstand.get_abstand(bild.width(), bild.height(), hindernis.width(), hindernis.height(), pos_x1, pos_y1, pos_x2, pos_y2)) < 1.0))
-			pos_y1 -= 5;	
+			pos_y1 -= 15;	
 		
 		//Bremsen durch Hoch-Taste
 		if ((input().down(Gosu::KB_UP)) && (delta_pos > 0))		
@@ -199,6 +325,7 @@ public:
 			pos_y3 = pos_y1 + 20;
 			pos_x3 = graphics().width() / 2.0;
 		};
+		//
 	}
 };
 
@@ -218,9 +345,9 @@ Verbesserungsvorschläge und ToDo-Liste:
 - Mehr Hindernisse einbauen (Mike)
 - Ziellinie mit Feierwerk :D
 - Streckenbegrenzung generieren (Patrick):
-	- man soll erkennen können wann das Auto außerhalb und wann innerhalb ist (Patrick)
-		- wenn innerhalb (Asphalt) -> normale Geschwindigkeitsverhältnisse
-		- wenn außerhalb (Gras) -> schlechtere Geschwindigkeitsverhältnisse
+	- man soll erkennen können wann das Auto außerhalb und wann innerhalb ist (Patrick) ERLEDIGT
+		- wenn innerhalb (Asphalt) -> normale Geschwindigkeitsverhältnisse ERLEDIGT
+		- wenn außerhalb (Gras) -> schlechtere Geschwindigkeitsverhältnisse ERLEDIGT
 			- außerhalb z.B. Schlammpfützen -> ganz schlechte Verhältnisse
 - Multiplayer:
 	- 2. Auto hinzufügen (Mike)
@@ -229,7 +356,7 @@ Verbesserungsvorschläge und ToDo-Liste:
 - Hauptmenü erstellen (Patrick):
 	- Spiel variabler gestalten:
 		- Einzelspieler/Mehrspieler
-		- Schwirigkeit (z.B. höhere Geschwindigkeit)
+		- Schwierigkeit (z.B. höhere Geschwindigkeit)
 		- evtl. Empfindlichkeit bei Lenkung
 	- Statistik
 */

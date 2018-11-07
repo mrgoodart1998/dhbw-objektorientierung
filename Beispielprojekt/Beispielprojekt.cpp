@@ -244,7 +244,7 @@ public:
 		abstaende.clear();
 		for (size_t i = 0; i < 2; i++)
 		{
-			abstaende_x.push_back(abstand.get_abstand_x(player1.width(), hindernis.width(), pos_x1, hindernisse_x.at(i)));
+			//abstaende_x.push_back(abstand.get_abstand_x(player1.width(), hindernis.width(), pos_x1, hindernisse_x.at(i)));
 			//abstaende_y.push_back(abstand.get_abstand_y(player1.height(), hindernis.height(), pos_y1, hindernisse_y.at(i)));
 			//abstaende.push_back(sqrt(abstaende_x.at(i)*abstaende_x.at(i) + abstaende_y.at(i) * abstaende_y.at(i)));
 		}

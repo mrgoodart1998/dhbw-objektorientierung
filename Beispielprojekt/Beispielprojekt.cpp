@@ -16,7 +16,7 @@ using namespace std;
 // Simulationsgeschwindigkeit
 const double DT = 100.0;
 
-vector<double> hindernisse_x, hindernisse_y, abstaende_x, abstaende_y, abstaende;
+vector<double> hindernisse_x, hindernisse_y, abstaende1_x, abstaende1_y, abstaende1, abstaende2_x, abstaende2_y, abstaende2;
 int anz_hindernisse = 10;
 int i = 0;
 
@@ -106,6 +106,7 @@ public:
 			streckenstück_x.push_back(x_strecke);
 			streckenstück_y.push_back(y_strecke);
 			y_strecke += c_RASEN_BREITE;
+
 		}
 		//streckenstück_idx = 0;
 
@@ -113,6 +114,21 @@ public:
 		//planets.push_back(Planet({ 200.0, 200.0 }, 0.1, "Autoweiss.png"));
 		//planets.push_back(Planet({ 600.0, 200.0 }, 0.1, "Autogruen.png"));
 		//planets.push_back(Planet({ 400.0, 500.0 }, 0.1, "Autoblau.png"));
+
+		//Positionen der Hindernisse random bestimmen
+		do
+		{
+			hindernisse_x.push_back(Gosu::random(1, graphics().width()));
+			//hindernisse_x.push_back(Gosu::random(1, graphics().width()));
+			//hindernisse_x.push_back(Gosu::random(1, graphics().width()));
+			//hindernisse_x.push_back(Gosu::random(1, graphics().width()));
+			hindernisse_y.push_back(Gosu::random(800, 5000));
+			//hindernisse_y.push_back(Gosu::random(5000, 10000));
+			//hindernisse_y.push_back(Gosu::random(10000, 15000));
+			//hindernisse_y.push_back(Gosu::random(15000, 20000));
+			i++;
+		} while (i <= anz_hindernisse);
+
 	}
 
 	//double x = 500;
@@ -163,31 +179,18 @@ public:
 			}
 		}
 
-		//Positionen der Hindernisse random bestimmen
-		do
-		{
-			hindernisse_x.push_back(Gosu::random(1, graphics().width()));
-			hindernisse_x.push_back(Gosu::random(1, graphics().width()));
-			//hindernisse_x.push_back(Gosu::random(1, graphics().width()));
-			//hindernisse_x.push_back(Gosu::random(1, graphics().width()));
-			hindernisse_y.push_back(Gosu::random(800, 5000));
-			hindernisse_y.push_back(Gosu::random(5000, 10000));
-			//hindernisse_y.push_back(Gosu::random(10000, 15000));
-			//hindernisse_y.push_back(Gosu::random(15000, 20000));
-			i++;
-		} while (i <= anz_hindernisse);
 
 		//Gosu::random();
 
 		//Spieler 1 (rotes Auto)
 		player1.draw_rot(pos_x1, pos_y1, 10,
-			rot, // Rotationswinkel in Grad
+			rot1, // Rotationswinkel in Grad
 			0.5, 0.5, 0.5, 0.5 // Position der "Mitte"
 		);
 
 		//Spieler 2 (gelbes Auto)
 		player2.draw_rot(pos_x4, pos_y4, 10,
-			rot, // Rotationswinkel in Grad
+			rot2, // Rotationswinkel in Grad
 			0.5, 0.5, 0.5, 0.5 // Position der "Mitte"
 		);
 
@@ -224,7 +227,8 @@ public:
 		*/
 	}
 
-	double rot = 0.0;
+	double rot1 = 0.0;
+	double rot2 = 0.0;
 	double poss = 0.0;
 	double ypos1_vorher = 0.0;
 	double ypos2_vorher = 0.0;
@@ -239,284 +243,307 @@ public:
 	{
 
 		//cout << pos_x1 << "    " << pos_x2 << "       " << abstand_x << "    " << abstand_y << "   " << halbe_x1 << " Hello  " << halbe_x2 << endl;
-		abstaende_x.clear();
-		abstaende_y.clear();
-		abstaende.clear();
-		for (size_t i = 0; i < 2; i++)
+		//abstaende1_x.clear();
+		//abstaende1_y.clear();
+		//abstaende1.clear();
+		
+		double abstand1_x, abstand1_y, abstand1, abstand2_x, abstand2_y, abstand2, tmp_abstand, abstand_x, abstand_y, hindernis1_nr, hindernis2_nr;
+		abstand1_x = abstand1_y = abstand1 = abstand2_x = abstand2_y = abstand2 = tmp_abstand = abstand_x = abstand_y = hindernis1_nr = hindernis2_nr = 999999;
+		
+		for (size_t m = 0; m < anz_hindernisse; m++)
 		{
-			//abstaende_x.push_back(abstand.get_abstand_x(player1.width(), hindernis.width(), pos_x1, hindernisse_x.at(i)));
-			//abstaende_y.push_back(abstand.get_abstand_y(player1.height(), hindernis.height(), pos_y1, hindernisse_y.at(i)));
-			//abstaende.push_back(sqrt(abstaende_x.at(i)*abstaende_x.at(i) + abstaende_y.at(i) * abstaende_y.at(i)));
-		}
-
-
-		double abstand_x = abstand.get_abstand_x(player1.width(), hindernis.width(), pos_x1, pos_x2);
-		double abstand_y = abstand.get_abstand_y(player1.height(), hindernis.height(), pos_y1, pos_y2);
-		double abstand = sqrt(abstand_x*abstand_x + abstand_y * abstand_y);
-
-		//Nach links fahren //Spieler 1
-		if ((input().down(Gosu::KB_LEFT)) && ((abstand) >= 1.0) && (pos_y2 != ypos1_vorher))
-		{
-			ypos1_vorher = pos_y2;
-			if (vel1 * sin(rot*PI / 180) >= 8.0)
-				pos_x1 -= 8.0;
-			else
-				pos_x1 -= vel1 * sin(rot*PI / 180);	//im Normalfall (kein Crash)
-			if (rot < 45)
-				rot += 1;
-		}
-		else if ((input().down(Gosu::KB_LEFT)) && ((abstand) <= 2.0) && (pos_x1 <= pos_x2))
-		{
-			pos_x1 -= 2;	//Bei Crash von rechts -> nach links fahren möglich
-			if (rot < 45)
-				rot += 1;
-		}
-		pos_x1 -= vel1 * sin(rot*PI / 180);
-
-		//Spieler 2
-		if ((input().down(Gosu::KB_A)) && ((abstand) >= 1.0) && (pos_y4 != ypos2_vorher))
-		{
-			ypos2_vorher = pos_y2;
-			if (vel2 * sin(rot*PI / 180) >= 8.0)
-				pos_x4 -= 8.0;
-			else
-				pos_x4 -= vel2 * sin(rot*PI / 180);	//im Normalfall (kein Crash)
-			if (rot < 45)
-				rot += 1;
-		}
-		else if ((input().down(Gosu::KB_A)) && ((abstand) <= 2.0) && (pos_x4 <= pos_x2))
-		{
-			pos_x4 -= 2;	//Bei Crash von rechts -> nach links fahren möglich
-			if (rot < 45)
-				rot += 1;
-		}
-		pos_x4 -= vel2 * sin(rot*PI / 180);
-
-		//Nach rechts fahren Spieler 1
-		if ((input().down(Gosu::KB_RIGHT)) && ((abstand) >= 1.0) && (pos_y2 != ypos1_vorher))
-		{
-			ypos1_vorher = pos_y2;
-			if (vel1 * sin(rot*PI / 180) <= -8.0)
-				pos_x1 += 8.0;
-			else
-				pos_x1 += vel1 * sin(rot*PI / 180);	//im Normalfall (kein Crash)
-			if (rot > -45)
-				rot -= 1;
-		}
-		else if ((input().down(Gosu::KB_RIGHT)) && ((abstand) <= 2.0) && (pos_x1 >= pos_x2))
-		{
-			pos_x1 += 2;	//Bei Crash von links -> nach rechts fahren möglich
-			if (rot > -45)
-				rot -= 1;
-		}
-
-		//Spieler 2
-		if ((input().down(Gosu::KB_D)) && ((abstand) >= 1.0) && (pos_y4 != ypos2_vorher))
-		{
-			ypos2_vorher = pos_y2;
-			if (vel2 * sin(rot*PI / 180) <= -8.0)
-				pos_x4 += 8.0;
-			else
-				pos_x4 += vel2 * sin(rot*PI / 180);	//im Normalfall (kein Crash)
-			if (rot > -45)
-				rot -= 1;
-		}
-		else if ((input().down(Gosu::KB_D)) && ((abstand) <= 2.0) && (pos_x4 >= pos_x2))
-		{
-			pos_x4 += 2;	//Bei Crash von links -> nach rechts fahren möglich
-			if (rot > -45)
-				rot -= 1;
-		}
-		cout << pos_y1 << "  " << pos_y4 << "   " << vel1 << "  " << vel2 << "  " << vel1 * sin(rot*PI / 180) << endl;
-		//cout << abstand_x << "  " << abstand_y << "  " << abstand << "  " << pos_y1 << "   " << delta_pos << "   " << poss << endl;	//nur zur Simulation
-
-		//Funktionen beim Beschleunigen Spieler 1
-		//if ((input().down(Gosu::KB_DOWN)) && (!(input().down(Gosu::KB_UP))) && (pos_y1 == graphics().height() / 2.0) && (((abstand) >= 1.0) || (abstand_x > 0.0)))
-		if ((input().down(Gosu::KB_DOWN)) && (!(input().down(Gosu::KB_UP))) && (((abstand) >= 1.0) || (abstand_x > 0.0)))
-		{
-			if (vel1 <= 0)
-				vel1 = 0.05;
-			if (vel1 < 20)	//Maximalgeschwindigkeitsänderung: 20
+			abstand_x = abstand.get_abstand_x(player1.width(), hindernis.width(), pos_x1, hindernisse_x.at(m));
+			abstand_y = abstand.get_abstand_y(player1.height(), hindernis.height(), pos_y1, hindernisse_y.at(m));
+			tmp_abstand = sqrt(abstand_x * abstand_x + abstand_y * abstand_y);
+			if (tmp_abstand <= abstand1 && hindernisse_y.at(m) >= (pos_y1 - player1.height()*0.5))
 			{
-				vel1 += 0.05;	//Pro Durchlauf Erhöhung der Geschwindigkeit um 0.05
+				abstand1 = tmp_abstand;
+				abstand1_x = abstand_x;
+				abstand1_y = abstand_y;
+				hindernis1_nr = m;
 			}
-			if ((pos_y1 > pos_y4) || ((pos_y1 == pos_y4) && (vel1 > vel2)))
+			abstand_x = abstand.get_abstand_x(player2.width(), hindernis.width(), pos_x4, hindernisse_x.at(m));
+			abstand_y = abstand.get_abstand_y(player2.height(), hindernis.height(), pos_y4, hindernisse_y.at(m));
+			tmp_abstand = sqrt(abstand_x * abstand_x + abstand_y * abstand_y);
+			if (tmp_abstand <= abstand1 && hindernisse_y.at(m) >= (pos_y4 - player2.height()*0.5))
 			{
-				pos_y2 -= vel1 * cos(rot*PI / 180);
-				pos_y3 -= vel1 * cos(rot*PI / 180);
-				pos_y4 -= vel1 * cos(rot*PI / 180);
-			}
-			else if ((pos_y1<pos_y4) || ((pos_y1 == pos_y4) && (vel1 < vel2)))
-			{
-				pos_y1 += vel1 * cos(rot*PI / 180);
-			}
-			else if ((pos_y1 == pos_y4) && (vel1 == vel2))
-			{
-				pos_y2 -= vel1 * cos(rot*PI / 180);
-				pos_y3 -= vel1 * cos(rot*PI / 180);
-			}
-			//poss += vel1 * cos(rot*PI / 180);
-			for (int j = 0; j < hindernisse_x.size(); j++)
-			{
-				hindernisse_y.at(j) -= vel1 * cos(rot*PI / 180);
-			}
-
-		}
-		//else if ((!(input().down(Gosu::KB_DOWN)) && (vel1 > 0)) && (abstand > 0) && (pos_y1 == graphics().height() / 2.0))
-		else if ((!(input().down(Gosu::KB_DOWN)) && (vel1 > 0)) && (abstand > 0))
-		{
-			vel1 -= 0.2;	//leichtes Bremsen bei Inaktivität
-			if (pos_y1 > pos_y4 || ((pos_y1 == pos_y4) && (vel1 > vel2)))
-			{
-				pos_y2 -= vel1 * cos(rot*PI / 180);
-				pos_y3 -= vel1 * cos(rot*PI / 180);
-				pos_y4 -= vel1 * cos(rot*PI / 180);
-			}
-			else if ((pos_y1 < pos_y4) || ((pos_y1 == pos_y4) && (vel1 < vel2)))
-			{
-				pos_y1 += vel1 * cos(rot*PI / 180);
-			}
-			else if ((pos_y1 == pos_y4) && (vel1 == vel2))
-			{
-				pos_y2 -= vel1 * cos(rot*PI / 180);
-				pos_y3 -= vel1 * cos(rot*PI / 180);
-			}
-			for (int j = 0; j < hindernisse_x.size(); j++)
-			{
-				hindernisse_y.at(j) -= vel1 * cos(rot*PI / 180);
+				abstand2 = tmp_abstand;
+				abstand2_x = abstand_x;
+				abstand2_y = abstand_y;
+				hindernis2_nr = m;
 			}
 		}
-		else if ((pos_y1>pos_y4) && (input().down(Gosu::KB_DOWN)) && (!(input().down(Gosu::KB_UP))) && (pos_y1 != graphics().height() / 2.0) && (((abstand) >= 1.0) || (abstand_x > 0.0)))
-		{
-			pos_y1 = graphics().height() / 2.0;
-		}
-		else if (vel1<0)
-		{
-			vel1 = 0;
-		}
-		//else if ((input().down(Gosu::KB_DOWN)) && (pos_x1 < posX_Streckenrand_links || pos_x1 > posX_Streckenrand_rechts )) {
-		if ((pos_x1 < posX_Streckenrand_links || pos_x1 > posX_Streckenrand_rechts)) {
-			if (vel1 > 4) {
-				vel1 -= 0.5; //Bremsen auf Gras bis Minimalspeed 1
+
+			cout << abstand2_y << "  " << hindernisse_y.at(0) << endl;
+			//cout << abstaende1_x.at0) << endl;
+			
+			//Nach links fahren //Spieler 1
+			if ((input().down(Gosu::KB_LEFT)) && ((abstand1) >= 1.0) && (pos_y2 != ypos1_vorher))
+			{
+				ypos1_vorher = pos_y2;
+				if (vel1 * sin(rot1*PI / 180) >= 8.0)
+					pos_x1 -= 8.0;
+				else
+					pos_x1 -= vel1 * sin(rot1*PI / 180);	//im Normalfall (kein Crash)
+				if (rot1 < 45)
+					rot1 += 1;
+			}
+			else if ((input().down(Gosu::KB_LEFT)) && ((abstand1) <= 2.0) && (pos_x1 <= pos_x2))
+			{
+				pos_x1 -= 2;	//Bei Crash von rechts -> nach links fahren möglich
+				if (rot1 < 45)
+					rot1 += 1;
+			}
+			pos_x1 -= vel1 * sin(rot1*PI / 180);
+
+			//Spieler 2
+			if ((input().down(Gosu::KB_A)) && ((abstand2) >= 1.0) && (pos_y4 != ypos2_vorher))
+			{
+				ypos2_vorher = pos_y2;
+				if (vel2 * sin(rot2*PI / 180) >= 8.0)
+					pos_x4 -= 8.0;
+				else
+					pos_x4 -= vel2 * sin(rot2*PI / 180);	//im Normalfall (kein Crash)
+				if (rot2 < 45)
+					rot2 += 1;
+			}
+			else if ((input().down(Gosu::KB_A)) && ((abstand2) <= 2.0) && (pos_x4 <= pos_x2))
+			{
+				pos_x4 -= 2;	//Bei Crash von rechts -> nach links fahren möglich
+				if (rot2 < 45)
+					rot2 += 1;
+			}
+			pos_x4 -= vel2 * sin(rot2*PI / 180);
+
+			//Nach rechts fahren Spieler 1
+			if ((input().down(Gosu::KB_RIGHT)) && ((abstand1) >= 1.0) && (pos_y2 != ypos1_vorher))
+			{
+				ypos1_vorher = pos_y2;
+				if (vel1 * sin(rot1*PI / 180) <= -8.0)
+					pos_x1 += 8.0;
+				else
+					pos_x1 += vel1 * sin(rot1*PI / 180);	//im Normalfall (kein Crash)
+				if (rot1 > -45)
+					rot1 -= 1;
+			}
+			else if ((input().down(Gosu::KB_RIGHT)) && ((abstand1) <= 2.0) && (pos_x1 >= pos_x2))
+			{
+				pos_x1 += 2;	//Bei Crash von links -> nach rechts fahren möglich
+				if (rot1 > -45)
+					rot1 -= 1;
 			}
 
-		}
+			//Spieler 2
+			if ((input().down(Gosu::KB_D)) && ((abstand2) >= 1.0) && (pos_y4 != ypos2_vorher))
+			{
+				ypos2_vorher = pos_y2;
+				if (vel2 * sin(rot2*PI / 180) <= -8.0)
+					pos_x4 += 8.0;
+				else
+					pos_x4 += vel2 * sin(rot2*PI / 180);	//im Normalfall (kein Crash)
+				if (rot2 > -45)
+					rot2 -= 1;
+			}
+			else if ((input().down(Gosu::KB_D)) && ((abstand2) <= 2.0) && (pos_x4 >= pos_x2))
+			{
+				pos_x4 += 2;	//Bei Crash von links -> nach rechts fahren möglich
+				if (rot2 > -45)
+					rot2 -= 1;
+			}
+			//cout << pos_y1 << "  " << pos_y4 << "   " << vel1 << "  " << vel2 << "  " << vel1 * sin(rot1*PI / 180) << endl;
+			//cout << abstaende_x.at(1) << "  " << abstaende_y.at(1) << "  " << abstaende.at(0) << "  " << pos_y1 << "   " << delta_pos << "   " << poss << endl;	//nur zur Simulation
 
-		//Freistellen des Autos zurück bei Crash
-		if ((input().down(Gosu::KB_UP)) && ((abstand) < 1.0) && (abstand_x == 0.0))
-			pos_y1 -= 5;
+			//Funktionen beim Beschleunigen Spieler 1
+			//if ((input().down(Gosu::KB_DOWN)) && (!(input().down(Gosu::KB_UP))) && (pos_y1 == graphics().height() / 2.0) && (((abstand) >= 1.0) || (abstand_x > 0.0)))
+			if ((input().down(Gosu::KB_DOWN)) && (!(input().down(Gosu::KB_UP))) && (((abstand1) >= 1.0) || (abstand1_x > 0.0)))
+			{
+				if (vel1 <= 0)
+					vel1 = 0.05;
+				if (vel1 < 20)	//Maximalgeschwindigkeitsänderung: 20
+				{
+					vel1 += 0.1;	//Pro Durchlauf Erhöhung der Geschwindigkeit um 0.1
+				}
+				if ((pos_y1 > pos_y4) || ((pos_y1 == pos_y4) && (vel1 > vel2)))
+				{
+					pos_y2 -= vel1 * cos(rot1*PI / 180);
+					pos_y3 -= vel1 * cos(rot1*PI / 180);
+					pos_y4 -= vel1 * cos(rot2*PI / 180);
+				}
+				else if ((pos_y1 < pos_y4) || ((pos_y1 == pos_y4) && (vel1 < vel2)))
+				{
+					pos_y1 += vel1 * cos(rot1*PI / 180);
+				}
+				else if ((pos_y1 == pos_y4) && (vel1 == vel2))
+				{
+					pos_y2 -= vel1 * cos(rot1*PI / 180);
+					pos_y3 -= vel1 * cos(rot1*PI / 180);
+				}
+				//poss += vel1 * cos(rot*PI / 180);
+				for (int j = 0; j < hindernisse_x.size(); j++)
+				{
+					hindernisse_y.at(j) -= vel1 * cos(rot1*PI / 180);
+				}
 
-		//Bremsen durch Hoch-Taste
-		if ((input().down(Gosu::KB_UP)) && (vel1 > 0))
-			vel1 -= 1.0;
+			}
+			//else if ((!(input().down(Gosu::KB_DOWN)) && (vel1 > 0)) && (abstand > 0) && (pos_y1 == graphics().height() / 2.0))
+			else if ((!(input().down(Gosu::KB_DOWN)) && (vel1 > 0)) && (abstand1 > 0))
+			{
+				vel1 -= 0.2;	//leichtes Bremsen bei Inaktivität
+				if (pos_y1 > pos_y4 || ((pos_y1 == pos_y4) && (vel1 > vel2)))
+				{
+					pos_y2 -= vel1 * cos(rot1*PI / 180);
+					pos_y3 -= vel1 * cos(rot1*PI / 180);
+					pos_y4 -= vel1 * cos(rot2*PI / 180);
+				}
+				else if ((pos_y1 < pos_y4) || ((pos_y1 == pos_y4) && (vel1 < vel2)))
+				{
+					pos_y1 += vel1 * cos(rot1*PI / 180);
+				}
+				else if ((pos_y1 == pos_y4) && (vel1 == vel2))
+				{
+					pos_y2 -= vel1 * cos(rot1*PI / 180);
+					pos_y3 -= vel1 * cos(rot1*PI / 180);
+				}
+				for (int j = 0; j < hindernisse_x.size(); j++)
+				{
+					hindernisse_y.at(j) -= vel1 * cos(rot1*PI / 180);
+				}
+			}
+			else if ((pos_y1 > pos_y4) && (input().down(Gosu::KB_DOWN)) && (!(input().down(Gosu::KB_UP))) && (pos_y1 != graphics().height() / 2.0) && ((abstand1) >= 1.0) || (abstand1_x > 0.0))
+			{
+				//pos_y1 = graphics().height() / 2.0;
+			}
+			else if (vel1 < 0)
+			{
+				vel1 = 0;
+			}
+			//else if ((input().down(Gosu::KB_DOWN)) && (pos_x1 < posX_Streckenrand_links || pos_x1 > posX_Streckenrand_rechts )) {
+			if ((pos_x1 < posX_Streckenrand_links || pos_x1 > posX_Streckenrand_rechts)) {
+				if (vel1 > 4) {
+					vel1 -= 0.25; //Bremsen auf Gras bis Minimalspeed 1
+				}
 
-		//Schließen des Spiels mit ESC
-		if (input().down(Gosu::KB_ESCAPE))
-			close();
-
-		// Crash-Erkennung (Abstand <=1.0) -> BOOM wird an Unfallstelle geheftet.
-		for (size_t i = 0; i < hindernisse_x.size(); i++)
-		{
-
-			if ((abstand) <= 1.0 && (pos_x3 != graphics().width() / 2.0))
-			{
-				vel1 = 0.0;
-				pos_y3 = pos_y1 + 20;
-				pos_x3 = graphics().width() / 2.0;
-			};
-		}
-
-		//Spieler 2
-		//if ((input().down(Gosu::KB_S)) && (!(input().down(Gosu::KB_W))) && (pos_y4 == graphics().height() / 2.0) && (((abstand) >= 1.0) || (abstand_x > 0.0)))
-		if ((input().down(Gosu::KB_S)) && (!(input().down(Gosu::KB_W))) && (((abstand) >= 1.0) || (abstand_x > 0.0)))
-		{
-			if (vel2 <= 0)
-				vel2 = 0.05;
-			if (vel2 < 20)	//Maximalgeschwindigkeitsänderung: 20
-			{
-				vel2 += 0.05;	//Pro Durchlauf Erhöhung der Geschwindigkeit um 0.05
-			}
-			if ((pos_y4 > pos_y1) || ((pos_y1 == pos_y4) && (vel1 < vel2)))
-			{
-				pos_y2 -= vel2 * cos(rot*PI / 180);
-				pos_y3 -= vel2 * cos(rot*PI / 180);
-				pos_y1 -= vel2 * cos(rot*PI / 180);
-			}
-			else if ((pos_y4 < pos_y1) || ((pos_y1 == pos_y4) && (vel1 > vel2)))
-			{
-				pos_y4 += vel2 * cos(rot*PI / 180);
-			}
-			else if ((pos_y1 == pos_y4) && (vel1 == vel2))
-			{
-				pos_y2 -= vel2 * cos(rot*PI / 180);
-				pos_y3 -= vel2 * cos(rot*PI / 180);
-			}
-			//poss += vel1 * cos(rot*PI / 180);
-			for (int j = 0; j < hindernisse_x.size(); j++)
-			{
-				hindernisse_y.at(j) -= vel2 * cos(rot*PI / 180);
-			}
-
-		}
-		//else if ((!(input().down(Gosu::KB_S)) && (vel2 > 0)) && (abstand > 0) && (pos_y4 == graphics().height() / 2.0))
-		else if ((!(input().down(Gosu::KB_S)) && (vel2 > 0)) && (abstand > 0))
-		{
-			vel2 -= 0.2;	//leichtes Bremsen bei Inaktivität
-			if ((pos_y4 > pos_y1) || ((pos_y1 == pos_y4) && (vel1 > vel2)))
-			{
-				pos_y2 -= vel2 * cos(rot*PI / 180);
-				pos_y3 -= vel2 * cos(rot*PI / 180);
-				pos_y1 -= vel2 * cos(rot*PI / 180);
-			}
-			else if ((pos_y4 < pos_y1) || ((pos_y1 == pos_y4) && (vel1 > vel2)))
-			{
-				pos_y4 += vel2 * cos(rot*PI / 180);
-			}
-			else if (pos_y1 == pos_y4 && (vel1 == vel2))
-			{
-				pos_y2 -= vel2 * cos(rot*PI / 180);
-				pos_y3 -= vel2 * cos(rot*PI / 180);
-			}
-			for (int j = 0; j < hindernisse_x.size(); j++)
-			{
-				hindernisse_y.at(j) -= vel2 * cos(rot*PI / 180);
-			}
-		}
-		else if ((pos_y1 < pos_y4) && (input().down(Gosu::KB_S)) && (!(input().down(Gosu::KB_W))) && (pos_y4 != graphics().height() / 2.0) && (((abstand) >= 1.0) || (abstand_x > 0.0)))
-		{
-			pos_y4 = graphics().height() / 2.0;
-		}
-		else if (vel2 < 0)
-		{
-			vel2 = 0;
-		}
-		//else if ((input().down(Gosu::KB_DOWN)) && (pos_x1 < posX_Streckenrand_links || pos_x1 > posX_Streckenrand_rechts )) {
-		if ((pos_x4 < posX_Streckenrand_links || pos_x4 > posX_Streckenrand_rechts)) {
-			if (vel2 > 4) {
-				vel2 -= 0.5; //Bremsen auf Gras bis Minimalspeed 1
 			}
 
-		}
+			//Freistellen des Autos zurück bei Crash
+			if ((input().down(Gosu::KB_UP)) && ((abstand1) < 1.0) && (abstand1_x == 0.0))
+				pos_y1 -= 100;
 
-		//Freistellen des Autos zurück bei Crash
-		if ((input().down(Gosu::KB_W)) && ((abstand) < 1.0) && (abstand_x == 0.0))
-			pos_y4 -= 5;
+			//Bremsen durch Hoch-Taste
+			if ((input().down(Gosu::KB_UP)) && (vel1 > 0))
+				vel1 -= 1.0;
 
-		//Bremsen durch Hoch-Taste
-		if ((input().down(Gosu::KB_W)) && (vel2 > 0))
-			vel2 -= 1.0;
+			//Schließen des Spiels mit ESC
+			if (input().down(Gosu::KB_ESCAPE))
+				close();
 
-		// Crash-Erkennung (Abstand <=1.0) -> BOOM wird an Unfallstelle geheftet.
-		for (size_t i = 0; i < hindernisse_x.size(); i++)
-		{
-
-			if ((abstand) <= 1.0 && (pos_x3 != graphics().width() / 2.0))
+			// Crash-Erkennung (Abstand <=1.0) -> BOOM wird an Unfallstelle geheftet.
+			for (size_t i = 0; i < hindernisse_x.size(); i++)
 			{
-				vel2 = 0.0;
-				pos_y3 = pos_y4 + 20;
-				pos_x3 = graphics().width() / 2.0;
-			};
-		}
+
+				if ((abstand1) <= 1.0 && (pos_x3 != graphics().width() / 2.0))
+				{
+					vel1 = 0.0;
+					rot1 = 0;
+					pos_y3 = pos_y1 + 20;
+					pos_x3 = hindernisse_x.at(hindernis1_nr);
+				};
+			}
+
+			//Spieler 2
+			//if ((input().down(Gosu::KB_S)) && (!(input().down(Gosu::KB_W))) && (pos_y4 == graphics().height() / 2.0) && (((abstand) >= 1.0) || (abstand_x > 0.0)))
+			if ((input().down(Gosu::KB_S)) && (!(input().down(Gosu::KB_W))) && (((abstand2) >= 1.0) || (abstand2_x > 0.0)))
+			{
+				if (vel2 <= 0)
+					vel2 = 0.05;
+				if (vel2 < 20)	//Maximalgeschwindigkeitsänderung: 20
+				{
+					vel2 += 0.1;	//Pro Durchlauf Erhöhung der Geschwindigkeit um 0.05
+				}
+				if ((pos_y4 > pos_y1) || ((pos_y1 == pos_y4) && (vel1 < vel2)))
+				{
+					pos_y2 -= vel2 * cos(rot2*PI / 180);
+					pos_y3 -= vel2 * cos(rot2*PI / 180);
+					pos_y1 -= vel2 * cos(rot2*PI / 180);
+				}
+				else if ((pos_y4 < pos_y1) || ((pos_y1 == pos_y4) && (vel1 > vel2)))
+				{
+					pos_y4 += vel2 * cos(rot2*PI / 180);
+				}
+				else if ((pos_y1 == pos_y4) && (vel1 == vel2))
+				{
+					pos_y2 -= vel2 * cos(rot2*PI / 180);
+					pos_y3 -= vel2 * cos(rot2*PI / 180);
+				}
+				//poss += vel1 * cos(rot*PI / 180);
+				for (int j = 0; j < hindernisse_x.size(); j++)
+				{
+					hindernisse_y.at(j) -= vel2 * cos(rot2*PI / 180);
+				}
+
+			}
+			//else if ((!(input().down(Gosu::KB_S)) && (vel2 > 0)) && (abstand > 0) && (pos_y4 == graphics().height() / 2.0))
+			else if ((!(input().down(Gosu::KB_S)) && (vel2 > 0)) && (abstand2 > 0))
+			{
+				vel2 -= 0.2;	//leichtes Bremsen bei Inaktivität
+				if ((pos_y4 > pos_y1) || ((pos_y1 == pos_y4) && (vel1 > vel2)))
+				{
+					pos_y2 -= vel2 * cos(rot2*PI / 180);
+					pos_y3 -= vel2 * cos(rot2*PI / 180);
+					pos_y1 -= vel2 * cos(rot2*PI / 180);
+				}
+				else if ((pos_y4 < pos_y1) || ((pos_y1 == pos_y4) && (vel1 > vel2)))
+				{
+					pos_y4 += vel2 * cos(rot2*PI / 180);
+				}
+				else if (pos_y1 == pos_y4 && (vel1 == vel2))
+				{
+					pos_y2 -= vel2 * cos(rot2*PI / 180);
+					pos_y3 -= vel2 * cos(rot2*PI / 180);
+				}
+				for (int j = 0; j < hindernisse_x.size(); j++)
+				{
+					hindernisse_y.at(j) -= vel2 * cos(rot2*PI / 180);
+				}
+			}
+			else if ((pos_y1 < pos_y4) && (input().down(Gosu::KB_S)) && (!(input().down(Gosu::KB_W))) && (pos_y4 != graphics().height() / 2.0) && ((abstand2) >= 1.0) || (abstand1_x > 0.0))
+			{
+				//pos_y4 = graphics().height() / 2.0;
+			}
+			else if (vel2 < 0)
+			{
+				vel2 = 0;
+			}
+			//else if ((input().down(Gosu::KB_DOWN)) && (pos_x1 < posX_Streckenrand_links || pos_x1 > posX_Streckenrand_rechts )) {
+			if ((pos_x4 < posX_Streckenrand_links || pos_x4 > posX_Streckenrand_rechts)) {
+				if (vel2 > 4) {
+					vel2 -= 0.25; //Bremsen auf Gras bis Minimalspeed 1
+				}
+
+			}
+
+			//Freistellen des Autos zurück bei Crash
+			if ((input().down(Gosu::KB_W)) && ((abstand2) < 1.0) && (abstand2_x == 0.0))
+				pos_y4 -= 100;
+
+			//Bremsen durch Hoch-Taste
+			if ((input().down(Gosu::KB_W)) && (vel2 > 0))
+				vel2 -= 1.0;
+
+			// Crash-Erkennung (Abstand <=1.0) -> BOOM wird an Unfallstelle geheftet.
+			for (size_t i = 0; i < hindernisse_x.size(); i++)
+			{
+
+				if ((abstand2) <= 1.0 && (pos_x3 != graphics().width() / 2.0))
+				{
+					vel2 = 0.0;
+					rot2 = 0;
+					pos_y3 = pos_y4 + 20;
+					pos_x3 = hindernisse_x.at(hindernis2_nr);
+				};
+			}
+
+
 	}
 };
 
@@ -532,24 +559,25 @@ int main()
 
 /*
 Verbesserungsvorschläge und ToDo-Liste:
-- Beim Lenken soll sich das Auto drehen -> max. Winkel ca. 90° (Mike)
+- Beim Lenken soll sich das Auto drehen -> max. Winkel ca. 90° (Mike) erldeigt, aber anpassungswürdig
 - Wenn Auto rechts oder links aus dem Bildschirm fährt -> Respawn mit v=0 (Mike/Patrick)
-- Crash-Erkennung bei allen Hindernissen (Mike)
+- Crash-Erkennung bei allen Hindernissen (Mike) erledigt, aber anpassungswürdig
 - Mehr Hindernisse einbauen (Mike)
 - Ziellinie mit Feuerwerk :D
 - Streckenbegrenzung generieren (Patrick):
-- man soll erkennen können wann das Auto außerhalb und wann innerhalb ist (Patrick)
-- wenn innerhalb (Asphalt) -> normale Geschwindigkeitsverhältnisse
-- wenn außerhalb (Gras) -> schlechtere Geschwindigkeitsverhältnisse
-- außerhalb z.B. Schlammpfützen -> ganz schlechte Verhältnisse
+	- man soll erkennen können wann das Auto außerhalb und wann innerhalb ist (Patrick)
+		- wenn innerhalb (Asphalt) -> normale Geschwindigkeitsverhältnisse
+		- wenn außerhalb (Gras) -> schlechtere Geschwindigkeitsverhältnisse
+		- außerhalb z.B. Schlammpfützen -> ganz schlechte Verhältnisse
 - Multiplayer:
-- 2. Auto hinzufügen (Mike)
-- Differenz == Bildschirmhöhe zwischen beiden Autos -> Spielende (Mike)
-- Crash-Erkennung gegenseitig (Mike)
+	- 2. Auto hinzufügen (Mike) erledigt
+	- Differenz == Bildschirmhöhe zwischen beiden Autos -> Spielende (Mike)
+	- Crash-Erkennung gegenseitig (Mike)
+	-vorderes Auto muss bei Bildchirmmitte sein!
 - Hauptmenü erstellen (Patrick):
-- Spiel variabler gestalten:
-- Einzelspieler/Mehrspieler
-- Schwirigkeit (z.B. höhere Geschwindigkeit)
-- evtl. Empfindlichkeit bei Lenkung
-- Statistik
+	- Spiel variabler gestalten:
+		- Einzelspieler/Mehrspieler
+		- Schwierigkeit (z.B. höhere Geschwindigkeit)
+		- evtl. Empfindlichkeit bei Lenkung
+		- Statistik
 */

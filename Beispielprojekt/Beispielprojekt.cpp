@@ -25,20 +25,32 @@ class hauptmenue : public Gosu::Window
 {
 	Gosu::Image hauptmen;
 	Gosu::Image highscore;
+	Gosu::Font Textfeld, Highscore1, Highscore2, Highscore3;
 
 public:
-	bool *two_player_active;
-	bool show_highscore;
-	bool *exit_all;
+	bool *two_player_active = false;
+	bool show_highscore = false;
+	bool *exit_all = false;
+	fstream f1;
+	vector<string> list1;
+	int number = 0;
+
 	hauptmenue(bool *two_player_act, bool *exit_now)
 		: Window(1000, 1000)
 		, hauptmen("hauptmenue_resize.png")
 		, highscore("highscore.jpg")
+		, Textfeld(20)
+		, Highscore1(20)
+		, Highscore2(20)
+		, Highscore3(20)
+
+
 
 	{
 		show_highscore = false;
 		two_player_active = two_player_act;
 		exit_all = exit_now;
+
 	}
 
 	void draw() override
@@ -48,12 +60,22 @@ public:
 				0, // Rotationswinkel in Grad
 				0.5, 0.5, 0.5, 0.5); // Position der "Mitte"
 		}
-		if (show_highscore) {
+
+		if (show_highscore)
+		{
 			highscore.draw_rot(500, 500, 0,
 				0, // Rotationswinkel in Grad
 				0.5, 0.5, 0.5, 0.5); // Position der "Mitte"
+
+			Highscore1.draw_rel("1. Platz:  " + list1.at(number - 1), 500, (900 - 3 * 75), 10, 0.5, 0.5, 1.0, 1.0);
+			Highscore2.draw_rel("2. Platz:  " + list1.at(number - 2), 500, (900 - 2 * 75), 10, 0.5, 0.5, 1.0, 1.0);
+			Highscore3.draw_rel("3. Platz:  " + list1.at(number - 3), 500, (900 - 1 * 75), 10, 0.5, 0.5, 1.0, 1.0);
 		}
+
 	}
+
+
+
 	void update() override {
 		if (input().down(Gosu::KB_A))
 		{
@@ -65,6 +87,34 @@ public:
 		}
 		else if (input().down(Gosu::KB_X)) {
 			show_highscore = true;
+			if (show_highscore) {
+				int number_of_lines = 0;
+				string h;
+				string line;
+				ifstream myfile("highscore.txt");
+				if (myfile.is_open()) {
+					while (!myfile.eof()) {
+						getline(myfile, line);
+						list1.push_back(line);
+						number_of_lines++;
+						//cout << line << endl;
+					}
+					number = number_of_lines;
+					//cout << number << endl;
+					myfile.close();
+				}
+				bool sortiert = TRUE;
+				while (sortiert) {
+					sortiert = FALSE;
+					for (int i = 0; i < number - 1; i++)
+						if (list1.at(i) > list1.at(i + 1)) {
+							h = list1.at(i);
+							list1.at(i) = list1.at(i + 1);
+							list1.at(i + 1) = h;
+							sortiert = TRUE;
+						}
+				}
+			}
 		}
 		else if (input().down(Gosu::KB_ESCAPE)) {
 			show_highscore = false;
@@ -143,9 +193,7 @@ class GameWindow : public Gosu::Window
 	double score_auto2 = 0.0;
 	bool exit_screen_time = false;
 	int time_sec_exit = 0;
-	double *score_auto1_ex;
-	double *score_auto2_ex;
-	double *time_sec_fin_ex;
+	int *time_sec_fin_ex;
 	double pos_x_boom = 10000.0;
 	double pos_y_boom = 10000.0;
 	string name_eingeben = "Name des Spielers:  ";
@@ -167,13 +215,16 @@ class GameWindow : public Gosu::Window
 	bool player2_sieger = false;
 	double start_time = 0;
 	bool beendet_ESC = false;
+	bool endeee = false;
+	int* score1 = 0;
+	bool gecrashed = false;
 
 public:
 
-	GameWindow(bool two_player_active, double *auto_score1, double *auto_score2, double *time_sec_fin)
+	GameWindow(bool two_player_active, int *auto_score1, int *time_sec_fin)
 		: Window(1000, 1000)
 		, player1("Autorot.png")
-		, player2("Autogelb.png")
+		, player2("Autogruen.png")
 		, hindernis("Autoblau.png")
 		, boom("boom.png")
 		, rasen("stueck_rasen.png")
@@ -190,8 +241,7 @@ public:
 		, sieger(30)
 	{
 		two_player_mod = two_player_active;
-		score_auto1_ex = auto_score1;
-		score_auto2_ex = auto_score2;
+		score1 = auto_score1;
 		time_sec_fin_ex = time_sec_fin;
 		vel_x = vel_y = angle1 = 0;
 		set_caption("Autorennspiel");
@@ -374,48 +424,56 @@ public:
 			ziel.draw_rot(500, 500, 10, 0, 0.5, 0.5, 0.5);
 			ziel.draw_rot(400, 500, 10, 0, 0.5, 0.5, 0.5);
 			ziel.draw_rot(600, 500, 10, 0, 0.5, 0.5, 0.5);
-			finish_zeit_auto1 = time_sec;
-			finish_zeit_auto2 = time_sec;
-			*score_auto1_ex = time_sec * vel_auto1_insg;
-			*score_auto2_ex = time_sec * vel_auto2_insg;
-			*time_sec_fin_ex = time_sec;
-			time_sec_exit++;
-			double end_time = clock();
 			ziel_erreicht = true;
 			bool fertig = false;
-
+			time_sec_exit++;
 			
 			ziel_erreicht = true;
 			if (pos_y1 > pos_y4 && !player1_sieger)
 			{
-				player1_sieger = true;
-				sieger_text = "Sieger ist Spieler 1! Herzlichen Glueckwunsch!!!";
-				cout << (end_time - start_time) / CLOCKS_PER_SEC << endl;
-				*score_auto1_ex = (end_time - start_time) * pos_y2 *(-1);
-				*score_auto2_ex = (end_time - start_time) * (pos_y2 *(-1) - (pos_y1 - pos_y4));
-				cout << "Score 1: " << score_auto1_ex << endl;
-				cout << "Score 2: " << score_auto2_ex << endl;
+				if (two_player_mod) {
+					player1_sieger = true;
+					sieger_text = "Sieger ist Spieler 1! Herzlichen Glueckwunsch!!!";
+				}
+				else if (!two_player_mod)
+				{
+					double end_time = clock();
+					player1_sieger = true;
+					double ben_Zeit = (end_time - start_time) / CLOCKS_PER_SEC;
+					*time_sec_fin_ex = ben_Zeit;
+					if (ben_Zeit < 300)
+						*score1 = (300-ben_Zeit) * pos_y2 *(-1) /1000;
+					if (ben_Zeit >= 300)
+						score1 = 0;
+					cout << "Startzeit: " << start_time << endl;
+					cout << "Strecke: " << pos_y2 * (-1.0) << endl;
+					cout << "Zeit: " << *time_sec_fin_ex << endl;
+					int score = *score1;
+					string score_s = to_string(score);
+					string time_s = to_string(ben_Zeit);
+					cout << "Score 1: " << *score1 << endl;
+					cout << "Score: " << score << endl;
+					sieger_text = "Ziel erreicht! Score: " +score_s ; 
+				}
 			}
 			if (pos_y4 > pos_y4 && !player2_sieger)
 			{
-				player2_sieger = true;
-				sieger_text = "Sieger ist Spieler 2! Herzlichen Glueckwunsch!!!";
-				cout << (end_time - start_time) / CLOCKS_PER_SEC << endl;
-				*score_auto2_ex = (end_time - start_time) * (pos_y2 *(-1.0));
-				*score_auto1_ex = (end_time - start_time) * ((pos_y2 *(-1.0)) - (pos_y4 - pos_y1));
-				cout << "Score 1: " << score_auto1_ex << endl;
-				cout << "Score 2: " << score_auto2_ex << endl;
+				if (two_player_mod)
+				{
+					player2_sieger = true;
+					sieger_text = "Sieger ist Spieler 2! Herzlichen Glueckwunsch!!!";
+				}
 			}
-			if (two_player_mod)
-				sieger.draw_rel(sieger_text, 500, 700, 50, 0.5, 0.5, 1.0, 1.0, Gosu::Color::WHITE);
+
+			sieger.draw_rel(sieger_text, 500, 700, 50, 0.5, 0.5, 1.0, 1.0, Gosu::Color::WHITE);
 			//system("pause");
 			
 
 			if (time_sec_exit > 60) {
-				font1.draw_rel(name_eingeben, 300, 700, 100, 0.0, 0.5, 1.0, 1.0);
-				font2.draw_rel(info, 300, 725, 100, 0.0, 0.5, 1.0, 1.0);
+				//font1.draw_rel(name_eingeben, 300, 700, 100, 0.0, 0.5, 1.0, 1.0);
+				//font2.draw_rel(info, 300, 725, 100, 0.0, 0.5, 1.0, 1.0);
 
-				if (time_sec_exit>100)
+				if (time_sec_exit>300)
 				{
 					close();
 				}
@@ -427,42 +485,24 @@ public:
 			ziel.draw_rot(500, 500, 10, 0, 0.5, 0.5, 0.5);
 			ziel.draw_rot(400, 500, 10, 0, 0.5, 0.5, 0.5);
 			ziel.draw_rot(600, 500, 10, 0, 0.5, 0.5, 0.5);
-			double end_time = clock();
-			finish_zeit_auto1 = time_sec;
-			finish_zeit_auto2 = time_sec;
-			*score_auto1_ex = (end_time - start_time) * pos_y2 *(-1);
-			*score_auto2_ex = (end_time - start_time) * pos_y2 *(-1);
-			*time_sec_fin_ex = time_sec;
-			time_sec_exit++;
 			ziel_erreicht = true;
+			time_sec_exit++;
 			sieger.draw_rel(sieger_text, 500, 700, 50, 0.5, 0.5, 1.0, 1.0, Gosu::Color::WHITE);
 			if (pos_y1 > pos_y4 && !player1_sieger)
 			{
 				player1_sieger = true;
 				sieger_text = "Sieger ist Spieler 1! Herzlichen Glueckwunsch!!!";
-				cout << (end_time - start_time) / CLOCKS_PER_SEC << endl;
-				*score_auto1_ex = (end_time - start_time) * (pos_y2 *(-1.0));
-				*score_auto2_ex = (end_time - start_time) * ((pos_y2 *(-1.0)) - (pos_y1 -pos_y4));
-				cout << "Score 1: " << score_auto1_ex << endl;
-				cout << "Score 2: " << score_auto2_ex << endl;
 			}
 			if (pos_y4 > pos_y1 && !player2_sieger)
 			{
 				player2_sieger = true;
 				sieger_text = "Sieger ist Spieler 2! Herzlichen Glueckwunsch!!!";
-				cout << (end_time - start_time) / CLOCKS_PER_SEC << endl;
-				*score_auto2_ex = (end_time - start_time) * (pos_y2 *(-1.0));
-				*score_auto1_ex = (end_time - start_time) * ((pos_y2 *(-1.0)) - (pos_y4 - pos_y1));
-				cout << "Score 1: " << score_auto1_ex << endl;
-				cout << "Score 2: " << score_auto2_ex << endl;
 			}
 
 
 
-			if (time_sec_exit > 60) {
-
-
-				//close();
+			if (time_sec_exit > 300) {
+				close();
 			}
 		}
 
@@ -477,41 +517,13 @@ public:
 			rot1, // Rotationswinkel in Grad
 			0.5, 0.5, 0.5, 0.5 // Position der "Mitte"
 		);
-		/*
-		//Abmessung Auto 1
-		for (int n = 1; n < c_WINDOW_WIDTH; n++) {
-		graphics().draw_line((pos_x1 - 19), (pos_y1 - 45), Gosu::Color::WHITE, (pos_x1 - 19), (pos_y1 + 45), Gosu::Color::WHITE, 10);
-		graphics().draw_line((pos_x1 + 19), (pos_y1 - 45), Gosu::Color::WHITE, (pos_x1 + 19), (pos_y1 + 45), Gosu::Color::WHITE, 10);
-		graphics().draw_line((pos_x1 - 19), (pos_y1 - 45), Gosu::Color::WHITE, (pos_x1 + 19), (pos_y1 - 45), Gosu::Color::WHITE, 10);
-		graphics().draw_line((pos_x1 + 19), (pos_y1 + 45), Gosu::Color::WHITE, (pos_x1 - 19), (pos_y1 + 45), Gosu::Color::WHITE, 10);
-		graphics().draw_line((pos_x1), (pos_y1), Gosu::Color::BLUE, (pos_x1 + 19), (pos_y1 + 45), Gosu::Color::BLUE, 10);
-		graphics().draw_line((pos_x1), (pos_y1), Gosu::Color::BLUE, (pos_x1 - 19), (pos_y1 - 45), Gosu::Color::BLUE, 10);
-		graphics().draw_line((pos_x1), (pos_y1), Gosu::Color::BLUE, (pos_x1 + 19), (pos_y1 - 45), Gosu::Color::BLUE, 10);
-		graphics().draw_line((pos_x1), (pos_y1), Gosu::Color::BLUE, (pos_x1 - 19), (pos_y1 + 45), Gosu::Color::BLUE, 10);
-
-		}*/
+		
 		//Spieler 2 (gelbes Auto)
 		if (two_player_mod) {
 			player2.draw_rot(pos_x4, pos_y4, 10,
 				rot2, // Rotationswinkel in Grad
 				0.5, 0.5, 0.5, 0.5 // Position der "Mitte"
 			);
-			for (int n = 1; n < c_WINDOW_WIDTH; n++) {
-				//Abstand der Autos visualisieren
-				//graphics().draw_line((pos_x1 + 19), (pos_y1 - 45), Gosu::Color::WHITE, (pos_x4 - 19), (pos_y4 - 45), Gosu::Color::WHITE, 10);
-				//graphics().draw_line((pos_x1 + 19), (pos_y1 + 45), Gosu::Color::WHITE, (pos_x4 - 19), (pos_y4 + 45), Gosu::Color::WHITE, 10);
-				//graphics().draw_line((pos_x1 - 19), (pos_y1 - 45), Gosu::Color::BLUE, (pos_x4 + 19), (pos_y4 - 45), Gosu::Color::BLUE, 10);
-				//graphics().draw_line((pos_x1 - 19), (pos_y1 + 45), Gosu::Color::BLUE, (pos_x4 + 19), (pos_y4 + 45), Gosu::Color::BLUE, 10);
-				//graphics().draw_line((pos_x4 - 19), (pos_y4 - 45), Gosu::Color::WHITE, (pos_x4 - 19), (pos_y4 + 45), Gosu::Color::WHITE, 10);
-				//graphics().draw_line((pos_x4 + 19), (pos_y4 - 45), Gosu::Color::WHITE, (pos_x4 + 19), (pos_y4 + 45), Gosu::Color::WHITE, 10);
-				//graphics().draw_line((pos_x4 - 19), (pos_y4 - 45), Gosu::Color::WHITE, (pos_x4 + 19), (pos_y4 - 45), Gosu::Color::WHITE, 10);
-				//graphics().draw_line((pos_x4 + 19), (pos_y4 + 45), Gosu::Color::WHITE, (pos_x4 - 19), (pos_y4 + 45), Gosu::Color::WHITE, 10);
-				//graphics().draw_line((pos_x4), (pos_y4), Gosu::Color::BLUE, (pos_x4 + 19), (pos_y4 + 45), Gosu::Color::BLUE, 10);
-				//graphics().draw_line((pos_x4), (pos_y4), Gosu::Color::BLUE, (pos_x4 - 19), (pos_y4 - 45), Gosu::Color::BLUE, 10);
-				//graphics().draw_line((pos_x4), (pos_y4), Gosu::Color::BLUE, (pos_x4 + 19), (pos_y4 - 45), Gosu::Color::BLUE, 10);
-				//graphics().draw_line((pos_x4), (pos_y4), Gosu::Color::BLUE, (pos_x4 - 19), (pos_y4 + 45), Gosu::Color::BLUE, 10);
-			}
-
 		}
 		
 		//Zeichnen von Hindernissen
@@ -584,14 +596,25 @@ public:
 		// NUR ZUM TEST
 		if (ziel_erreicht && !namenende)
 		{
+
 			//cout << "Hallo" << endl;
 			string name_vorher = name1;
 			if (input().down(Gosu::KB_A))
-				if (!input().down(Gosu::KB_A))
+			{
+				while (endeee==false)
 				{
-					cout << "A";
-					name1 += "A";
+					
+					if(input().down(Gosu::KB_X))
+						endeee = true;
+					cout << "WHILEEEEEEEEE" << endl;
+					if (endeee == true)
+						cout << "TRUUUUUUUUUUUUUUE" << endl;
+					if (endeee == false)
+						cout << "FAAAAAAAAAAAAAALSE" << endl;
 				}
+				cout << "A";
+				name1 += "A";
+			}
 			if (input().down(Gosu::KB_B))
 				if (!input().down(Gosu::KB_B))
 				{
@@ -671,8 +694,8 @@ public:
 				time_sec++;
 			}
 
-			double abstand1_x, abstand1_y, abstand1, abstand2_x, abstand2_y, abstand2, tmp_abstand, abstand_x, abstand_y, hindernis1_nr, hindernis2_nr;
-			abstand1_x = abstand1_y = abstand1 = abstand2_x = abstand2_y = abstand2 = tmp_abstand = abstand_x = abstand_y = hindernis1_nr = hindernis2_nr = 999999;
+			double abstand1_x, abstand1_y, abstand1, abstand2_x, abstand2_y, abstand2, tmp_abstand, abstand_x, abstand_y, hindernis1_nr, hindernis2_nr, abstand3_x, abstand3_y, abstand3;
+			abstand1_x = abstand1_y = abstand1 = abstand2_x = abstand2_y = abstand2 = tmp_abstand = abstand_x = abstand_y = hindernis1_nr = hindernis2_nr = abstand3_x = abstand3_y = abstand3 = 999999;
 
 			for (size_t m = 0; m < hindernisse_x.size(); m++)
 			{
@@ -701,16 +724,10 @@ public:
 				}
 			}
 
-			//cout << abstand2_y << "  " << hindernisse_y.at(0) << endl;
-			cout << time_sec << endl;
-			cout << vel_auto1_insg << endl;
-			
-			cout << "POS_Y1: " << pos_y1 << endl;
+			/*cout << "POS_Y1: " << pos_y1 << endl;
 			cout << "POS_Y2: " << pos_y2 << endl;
 			cout << "POS_Y3: " << pos_y3 << endl;
-			cout << "POS_Y4: " << pos_y4 << endl;
-			cout << "Startzeit: " << start_time << endl;
-			//cout << abstaende1_x.at0) << endl;
+			cout << "POS_Y4: " << pos_y4 << endl;*/
 
 			//Nach links fahren //Spieler 1
 			if (!two_player_mod&&(input().down(Gosu::KB_LEFT)) && ((abstand1) >= 1.0) && (pos_y2 != ypos1_vorher))
@@ -735,7 +752,6 @@ public:
 			else if(two_player_mod&&(input().down(Gosu::KB_LEFT)) && ((abstand1) >= 1.0) && (pos_y2 != ypos1_vorher))
 			{
 				ypos1_vorher = pos_y2;
-				cout << "POS_Y1_VORHER: " << ypos1_vorher;
 				if (vel1 * sin(rot1*PI / 180) >= 8.0)
 					pos_x1 -= 8.0;
 				else
@@ -751,7 +767,6 @@ public:
 				if ((input().down(Gosu::KB_A)) && ((abstand2) >= 1.0) && (pos_y4 != ypos2_vorher)) ////y2 zu y4
 				{
 					ypos2_vorher = pos_y2;
-					cout << "POS_Y2_VORHER: " << ypos2_vorher;
 					if (vel2 * sin(rot2*PI / 180) >= 8.0)
 						pos_x4 -= 8.0;
 					else
@@ -850,18 +865,14 @@ public:
 					{
 						hindernisse_y.at(j) -= vel1 * cos(rot1*PI / 180);
 					}
-					cout << pos_y1 << " (1)" << endl;
 				}
 				else if ((pos_y1 <= graphics().height() / 2.0))
 				{
 					pos_y1 += vel1 * cos(rot1*PI / 180);
 
-					cout << pos_y1 << " (2)" << endl;
-					cout << pos_y2 << " (2.2) " << endl;
 					if (pos_y1 > (graphics().height() / 2.0) - 2 && pos_y1 < (graphics().height() / 2.0) + 2)
 					{
 						pos_y1 = graphics().height() / 2.0;
-						cout << pos_y1 << " (2.1)" << endl;
 					}
 
 				}
@@ -869,7 +880,6 @@ public:
 				{
 					ypos12_vorher = pos_y1;
 					pos_y1 += vel1 * cos(rot1*PI / 180);
-					cout << pos_y1 << " (3)" << endl;
 				}
 				else if ((pos_y1 == pos_y4) && (vel1 == vel2))
 				{
@@ -879,7 +889,6 @@ public:
 					{
 						hindernisse_y.at(j) -= vel1 * cos(rot1*PI / 180);
 					}
-					cout << pos_y1 << " (4) " << vel1 * cos(rot1*PI / 180) << endl;
 				}
 
 
@@ -899,7 +908,6 @@ public:
 					{
 						hindernisse_y.at(j) -= vel1 * cos(rot1*PI / 180);
 					}
-					cout << pos_y1 << " (4) " << vel1 * cos(rot1*PI / 180) << endl;
 				}
 				else if ((pos_y1 < pos_y4) || ((pos_y1 == pos_y4) && (vel1 < vel2)))
 				{
@@ -914,7 +922,6 @@ public:
 					{
 						hindernisse_y.at(j) -= 0.5 * vel1 * cos(rot1*PI / 180);
 					}
-					cout << pos_y1 << " (4) " << vel1 * cos(rot1*PI / 180) << endl;
 				}
 			}
 			else if ((pos_y1 > pos_y4) && (input().down(Gosu::KB_DOWN)) && (!(input().down(Gosu::KB_UP))) && (pos_y1 != graphics().height() / 2.0) && ((abstand1) >= 1.0) || (abstand1_x > 0.0))
@@ -957,9 +964,8 @@ public:
 				rot1 = 0;
 				vel1 = vel1 / 2.0;
 			}
-
 			//Freistellen des Autos zurück bei Crash
-			if ((input().down(Gosu::KB_UP)) && ((abstand1) < 1.0) && (abstand1_x == 0.0))
+			if ((input().down(Gosu::KB_UP)) && ((abstand1) < 1.0) && (abstand1_x <= 1.0))
 			{
 				ypos12_vorher = pos_y1;
 				pos_y1 -= 100;
@@ -991,6 +997,10 @@ public:
 					//font.draw_rel("HALLLLOOOOO", 500, 500, 100, 0.5, 0.5, 1.0, 1.0);
 				};
 			}
+
+			//Korrigierung Geschwindigkeit
+			if (vel1 <= 0.01)
+				vel1 = 0.0;
 
 			//Spieler 2
 			if (two_player_mod)
@@ -1113,7 +1123,7 @@ public:
 				}
 
 				//Freistellen des Autos zurück bei Crash
-				if ((input().down(Gosu::KB_W)) && ((abstand2) < 1.0) && (abstand2_x == 0.0))
+				if ((input().down(Gosu::KB_W)) && ((abstand2) < 1.0) && (abstand2_x <= 1.0))
 				{
 					ypos22_vorher = pos_y4;
 					pos_y4 -= 100;
@@ -1137,6 +1147,27 @@ public:
 						pos_x3 = hindernisse_x.at(hindernis2_nr);
 					};
 				}
+
+				//Korrigierung Geschwindigkeit
+				if (vel2 <= 0.01)
+					vel2 = 0.0;
+
+				//Crash zwischen beiden Autos
+				abstand3_x = abstand.get_abstand_x(player1.width(), player2.width(), pos_x1, pos_x4);
+				abstand3_y = abstand.get_abstand_y(player1.height(), player2.height(), pos_y1, pos_y4);
+				abstand3 = sqrt(abstand3_x * abstand3_x + abstand3_y * abstand3_y);
+				if (abstand3<=1.0&&!gecrashed)
+				{
+					rot1 *= -0.5;
+					rot2 *= -0.5;
+					vel1 *= 0.5;
+					vel2 *= 0.5;
+					gecrashed = true;
+				}
+
+				if (abstand3 > 1.0&&gecrashed)
+					gecrashed = false;
+
 			}
 			/*for (int n = 1; n < c_WINDOW_WIDTH; n++) {
 			graphics().draw_line((pos_x1 + 19), (pos_y1 - 45), Gosu::Color::WHITE, (pos_x4 - 19), (pos_y4 - 45), Gosu::Color::WHITE, 10);
@@ -1155,46 +1186,77 @@ public:
 class highscore_end : public Gosu::Window
 {
 	Gosu::Image highscore;
-	Gosu::Font Textfeld;
+	Gosu::TextInput score_play;
+	Gosu::Font Textfeld, Highscore1, Highscore2, Highscore3;
+
 public:
-	double score_auto1_var;
-	double score_auto2_var;
-	double time_sec_fin;
-	string text = "HALLO";
+	int score_auto1_var = 0;
+	int time_sec_fin = 0;
 	fstream f;
-	highscore_end(double score_auto1, double score_auto2, double time_sec_final, bool two_player_active)
+	vector<string> list;
+	int number = 0;
+	highscore_end(int score_auto1, double time_sec_final, bool two_player_active)
 		: Window(1000, 1000)
 		, highscore("highscore.jpg")
 		, Textfeld(20)
+		, Highscore1(20)
+		, Highscore2(20)
+		, Highscore3(20)
 	{
 		score_auto1_var = score_auto1;
-		score_auto2_var = score_auto2;
 		time_sec_fin = time_sec_final;
 		string player1;
 		string player2;
-		cout << " NAME PLAYER 1: " << endl;
-		cin >> player1;
-		f.open("highscore.txt", ios::app);
-		f << player1 << score_auto1 << time_sec_fin << endl;
-		if (two_player_active) {
-			cout << " NAME PLAYER 2: " << endl;
-			cin >> player2;
-			f << player2 << score_auto2 << time_sec_fin << endl;
-		}
-		f.close();
-		
+		if (!two_player_active)
+		{
+			cout << " NAME PLAYER 1: " << endl;
+			cin >> player1;
+			f.open("highscore.txt", ios::app);
+			f << score_auto1 << "   " << player1 << "  Time: " << time_sec_fin << endl;
 
+			f.close();
+		}
+		/* Sortieren */
+		int number_of_lines = 0;
+		string h;
+		string line;
+		ifstream myfile("highscore.txt");
+		if (myfile.is_open()) {
+			while (!myfile.eof()) {
+				getline(myfile, line);
+				list.push_back(line);
+				number_of_lines++;
+				cout << line << endl;
+			}
+			number = number_of_lines;
+			//cout << number << endl;
+			myfile.close();
+		}
+		bool sortiert = TRUE;
+		while (sortiert) {
+			sortiert = FALSE;
+			for (int i = 0; i < number - 1; i++)
+				if (list.at(i) > list.at(i + 1)) {
+					h = list.at(i);
+					list.at(i) = list.at(i + 1);
+					list.at(i + 1) = h;
+					sortiert = TRUE;
+				}
+
+		}
 
 	}
+
 	void draw() override
 	{
 		highscore.draw_rot(500, 500, 0,
 			0, // Rotationswinkel in Grad
 			0.5, 0.5, 0.5, 0.5); // Position der "Mitte"
-		Textfeld.draw_rel(text, 500, 500, 100, 0.5, 0.5, 1.0, 1.0);
-	}
 
-	
+		Highscore1.draw_rel("1. Platz:  " + list.at(number - 1), 500, (900 - 1 * 75), 10, 0.5, 0.5, 1.0, 1.0);
+		Highscore2.draw_rel("2. Platz:  " + list.at(number - 2), 500, (900 - 2 * 75), 10, 0.5, 0.5, 1.0, 1.0);
+		Highscore3.draw_rel("3. Platz:  " + list.at(number - 3), 500, (900 - 3 * 75), 10, 0.5, 0.5, 1.0, 1.0);
+	}
 
 	void update() override {
 		if (input().down(Gosu::KB_ESCAPE))
@@ -1202,7 +1264,6 @@ public:
 			close();
 		}
 	};
-
 };
 
 
@@ -1210,18 +1271,18 @@ public:
 int main()
 {
 	bool two_player_active = false;
-	double score_auto1_var = 0.0;
-	double score_auto2_var = 0.0;
-	double time_sec_fin = 0.0;
+	int score_auto1_var = 0;
+	int time_sec_fin = 0;
 	bool exit_all = false;
-	//PlaySound((TEXT("ChillingMusic.wav")));
 	hauptmenue window(&two_player_active, &exit_all);
+	sndPlaySound(L"tone.wav", SND_FILENAME | SND_ASYNC | SND_LOOP);
 	while (!exit_all) {
 		window.show();
 		if (!exit_all) {
-			GameWindow gamewindow(two_player_active, &score_auto1_var, &score_auto2_var, &time_sec_fin);
+			GameWindow gamewindow(two_player_active, &score_auto1_var, &time_sec_fin);
 			gamewindow.show();
-			highscore_end high_window(score_auto1_var, score_auto2_var, time_sec_fin, two_player_active);
+			// cout << "SCCCCCCOOOOORE: " << score_auto1_var << endl;
+			highscore_end high_window(score_auto1_var, time_sec_fin, two_player_active);
 			high_window.show();
 			two_player_active = false;
 		}
